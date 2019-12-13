@@ -10,4 +10,4 @@ RUN curl http://www.rabbitmq.com/community-plugins/v3.6.x/rabbitmq_delayed_messa
 
 RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange
 
-HEALTHCHECK --timeout=2s CMD curl -sf -u guest:guest http://localhost:15672/api/healthchecks/node || exit 1
+#HEALTHCHECK --timeout=2s CMD curl -sf -u guest:guest http://localhost:15672/api/healthchecks/node || exit 1

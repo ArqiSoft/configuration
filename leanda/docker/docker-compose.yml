@@ -30,7 +30,9 @@ services:
         container_name: rabbitmq
         hostname: "rabbitmq-dev"
         environment:
-        - RABBITMQ_DEFAULT_VHOST=osdr_dev
+        - RABBITMQ_DEFAULT_VHOST=leanda
+        - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWORD}
         ports:
         - "8282:15672"
         - "5671:5671"
@@ -50,6 +52,9 @@ services:
         - data-mongo-data:/data/db
         networks:
         - leanda-ext
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: ${MONGO_DB_USER}
+          MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
 
     # filebeat:
     #     image: docker.scidatasoft.com/filebeat
@@ -91,6 +96,7 @@ services:
         container_name: elasticsearch
         environment:
         - discovery.type=single-node
+        - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
         #- "ES_JAVA_OPTS=-Xms8g -Xmx8g"
         volumes:
         - data-elasticsearch:/usr/share/elasticsearch/data
@@ -162,8 +168,8 @@ services:
         environment:
         - IDENTITY_SERVER_URL=${IDENTITY_SERVER_URL}
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         - MAX_BLOB_SIZE=${MAX_BLOB_SIZE}
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Storage.Blob.WebApi
         volumes:
@@ -182,8 +188,8 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.MetadataStorage.Processing
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -200,9 +206,9 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_ES=http://elasticsearch:9200
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- ./Sds.Indexing
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -223,10 +229,10 @@ services:
         - IDENTITY_SERVER_URL=${IDENTITY_SERVER_URL}
         - OSDR_REDIS=redis
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_EVENT_STORE=ConnectTo=tcp://admin:changeit@eventstore:1113
-        - OSDR_ES=http://elasticsearch:9200
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_EVENT_STORE=ConnectTo=tcp://${EVENT_STORE_USER}:${EVENT_STORE_PASSWORD}@eventstore:1113
+        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
         # - SWAGGER_BASEPATH=/osdr/v1
         - OSDR_LOG_LEVEL=${OSDR_LOG_LEVEL}
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.WebApi
@@ -248,9 +254,9 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_EVENT_STORE=ConnectTo=tcp://admin:changeit@eventstore:1113
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_EVENT_STORE=ConnectTo=tcp://${EVENT_STORE_USER}:${EVENT_STORE_PASSWORD}@eventstore:1113
         - OSDR_REDIS=redis
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.Domain.BackEnd
         volumes:
@@ -271,9 +277,9 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_EVENT_STORE=ConnectTo=tcp://admin:changeit@eventstore:1113
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_EVENT_STORE=ConnectTo=tcp://${EVENT_STORE_USER}:${EVENT_STORE_PASSWORD}@eventstore:1113
         - OSDR_REDIS=redis
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.Domain.FrontEnd
         volumes:
@@ -289,8 +295,8 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.Domain.SagaHost
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -308,8 +314,8 @@ services:
         entrypoint: /bin/bash
         environment:
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.Persistence
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -328,8 +334,8 @@ services:
         environment:
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- java -Djava.awt.headless=true -Xmx256m -XX:NativeMemoryTracking=summary -jar sds-imaging-service.jar
@@ -350,8 +356,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar chemical-parser.jar
@@ -372,8 +378,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -XX:NativeMemoryTracking=summary -jar reaction-parser.jar
@@ -394,8 +400,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -XX:NativeMemoryTracking=summary -jar crystal-parser.jar
@@ -416,8 +422,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -XX:NativeMemoryTracking=summary -jar spectra-parser.jar
@@ -438,8 +444,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=2
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -XX:NativeMemoryTracking=summary -jar office-file-processor.jar
@@ -462,8 +468,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar sds-chemical-properties-service.jar
@@ -486,8 +492,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/leanda
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar leanda-microscopy-metadata-service.jar
@@ -507,9 +513,9 @@ services:
         environment: 
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
-        - OSDR_ES=http://elasticsearch:9200
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
+        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- ./Leanda.Categories.Processing
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -529,8 +535,8 @@ services:
         - TZ=EST
         - OSDR_LOG_FOLDER=/logs
         - OSDR_TEMP_FILES_FOLDER=/temp
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar chemical-export-service.jar
@@ -553,8 +559,8 @@ services:
         - TZ=EST
         - OSDR_TEMP_FILES_FOLDER=/temp
         - OSDR_LOG_FOLDER=/logs
-        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
-        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
+        - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - QUEUE_PREFETCH_SIZE=9
         - EXECUTOR_THREAD_COUNT=3
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar web-importer-service.jar
@@ -575,7 +581,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_BLOB_SERVICE_TOKEN_URL=${IDENTITY_SERVER_URL}/protocol/openid-connect/token
     #     - OSDR_BLOB_SERVICE_URL=${BLOB_STORAGE_API_URL_UNESCAPED}
     #     - OSDR_ML_MODELER_CLIENT_SECRET=52461d3c-7f0b-4b72-a508-1e7febaacabb
@@ -603,7 +609,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_BLOB_SERVICE_TOKEN_URL=${IDENTITY_SERVER_URL}/protocol/openid-connect/token
     #     - OSDR_BLOB_SERVICE_URL=${BLOB_STORAGE_API_URL_UNESCAPED}
     #     - OSDR_ML_MODELER_CLIENT_SECRET=52461d3c-7f0b-4b72-a508-1e7febaacabb
@@ -635,7 +641,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_BLOB_SERVICE_TOKEN_URL=${IDENTITY_SERVER_URL}/protocol/openid-connect/token
     #     - OSDR_BLOB_SERVICE_URL=${BLOB_STORAGE_API_URL_UNESCAPED}
     #     - OSDR_ML_MODELER_CLIENT_SECRET=52461d3c-7f0b-4b72-a508-1e7febaacabb
@@ -664,7 +670,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_BLOB_SERVICE_TOKEN_URL=${IDENTITY_SERVER_URL}/protocol/openid-connect/token
     #     - OSDR_BLOB_SERVICE_URL=${BLOB_STORAGE_API_URL_UNESCAPED}
     #     - OSDR_ML_MODELER_CLIENT_SECRET=52461d3c-7f0b-4b72-a508-1e7febaacabb
@@ -692,7 +698,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_BLOB_SERVICE_TOKEN_URL=${IDENTITY_SERVER_URL}/protocol/openid-connect/token
     #     - OSDR_BLOB_SERVICE_URL=${BLOB_STORAGE_API_URL_UNESCAPED}
     #     - OSDR_ML_MODELER_CLIENT_SECRET=52461d3c-7f0b-4b72-a508-1e7febaacabb
@@ -721,7 +727,7 @@ services:
     #     environment:
     #     - OSDR_LOG_FOLDER=/logs
     #     - OSDR_TEMP_FILES_FOLDER=/temp
-    #     - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+    #     - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
     #     - OSDR_RABBIT_MQ_FEATURE_VECTOR_CALCULATOR_MAX_THREADS_NUMBER=32
     #     - OSDR_RABBIT_MQ_FEATURE_VECTOR_CALCULATOR_PREFETCH_COUNT=32
     #     - REDIS_EXPIRATION_TIME_SECONDS=43200
