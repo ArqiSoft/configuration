@@ -96,7 +96,7 @@ services:
         container_name: elasticsearch
         environment:
         - discovery.type=single-node
-        - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+        - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
         #- "ES_JAVA_OPTS=-Xms8g -Xmx8g"
         volumes:
         - data-elasticsearch:/usr/share/elasticsearch/data
@@ -208,7 +208,7 @@ services:
         - OSDR_LOG_FOLDER=/logs
         - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
-        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
+        - OSDR_ES=http://elastic:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- ./Sds.Indexing
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
@@ -232,7 +232,7 @@ services:
         - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
         - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         - OSDR_EVENT_STORE=ConnectTo=tcp://${EVENT_STORE_USER}:${EVENT_STORE_PASSWORD}@eventstore:1113
-        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
+        - OSDR_ES=http://elastic:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
         # - SWAGGER_BASEPATH=/osdr/v1
         - OSDR_LOG_LEVEL=${OSDR_LOG_LEVEL}
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Osdr.WebApi
@@ -515,7 +515,7 @@ services:
         - OSDR_TEMP_FILES_FOLDER=/temp
         - OSDR_RABBIT_MQ=rabbitmq://${RABBIT_MQ_USER}:${RABBIT_MQ_PASSWORD}@rabbitmq:5672/leanda
         - OSDR_MONGO_DB=mongodb://${MONGO_DB_USER}:${MONGO_DB_PASSWORD}@mongo:27017/leanda?authSource=admin
-        - OSDR_ES=http://elastic:${ELASTIC_PASSWORD}@elasticsearch:9200
+        - OSDR_ES=http://elastic:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- ./Leanda.Categories.Processing
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
