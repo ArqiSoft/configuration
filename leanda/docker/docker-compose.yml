@@ -91,12 +91,12 @@ services:
     #     networks:
     #     - leanda-ext
 
-    elasticsearch:
+    elasticsearch:    
         image: leanda/elasticsearch
         container_name: elasticsearch
         environment:
         - discovery.type=single-node
-        - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+        - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
         #- "ES_JAVA_OPTS=-Xms8g -Xmx8g"
         volumes:
         - data-elasticsearch:/usr/share/elasticsearch/data
