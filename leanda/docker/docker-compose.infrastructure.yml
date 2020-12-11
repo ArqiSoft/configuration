@@ -53,7 +53,7 @@ services:
 
     # postgres:
     #   container_name: 'keycloak-postgres'
-    #   image: postgres
+    #   image: postgres:13.1
     #   environment:
     #     POSTGRES_USER: keycloak
     #     POSTGRES_PASSWORD: keycloak
