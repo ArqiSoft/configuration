@@ -5,10 +5,10 @@ services:
       container_name: 'keycloak-postgres'
       image: postgres:13.1
       environment:
-        POSTGRES_USER: keycloak
-        POSTGRES_PASSWORD: keycloak
-        POSTGRES_DATABASE: keycloak
-        POSTGRES_ROOT_PASSWORD: keycloak
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DATABASE: ${POSTGRES_USER}
+        POSTGRES_ROOT_PASSWORD: ${POSTGRES_ROOT_PASSWORD}
         pgdata: data-pstgresql
       ports:
       - '5432:5432'
@@ -21,13 +21,13 @@ services:
         container_name: 'keycloak-server'
         image: leanda/keycloak:latest
         environment:
+          DB_ADDR: postgres
+          DB_USER: ${POSTGRES_USER}
+          DB_PASSWORD: ${POSTGRES_PASSWORD}           
           DB_VENDOR: POSTGRES
-          KEYCLOAK_USER: admin
-          KEYCLOAK_PASSWORD: admin
-          POSTGRES_USER: keycloak
-          POSTGRES_PASSWORD: keycloak
-          POSTGRES_PORT_5432_TCP_ADDR: postgres
-          POSTGRES_DATABASE: keycloak
+          DB_DATABASE: ${POSTGRES_USER}
+          KEYCLOAK_USER: ${KEYCLOAK_USER}
+          KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
           JDBC_PARAMS: 'connectTimeout=30'
         ports:
         - '80:8080'
