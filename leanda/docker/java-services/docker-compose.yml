@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  jdk-services:
+    container_name: jdk-services
+    image: jdk-services
+    environment:
+      - TZ=EST
+      - OSDR_LOG_FOLDER=/logs
+      - OSDR_TEMP_FILES_FOLDER=/temps
+      - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+      - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+    volumes:
+      - /temps/
+      - /logs/
+    build:
+      context: .
+    ports:
+      - 8987:8087
+    networks:
+      - osdr-net-ext
+  mongo:
+    image: mongo:3.6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - data-mongo-config:/data/configdb
+      - data-mongo-data:/data/db
+    networks:
+      - osdr-net-ext
+
+  rabbitmq:
+    image: leanda/rabbitmq
+    container_name: rabbitmq
+    hostname: "rabbitmq-dev"
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=osdr_dev
+    ports:
+      - "8282:15672"
+      - "5671:5671"
+      - "5672:5672"
+    volumes:
+      - data-rabbitmq:/var/lib/rabbitmq
+    networks:
+      - osdr-net-ext
+
+volumes:
+  data-rabbitmq:
+  data-mongo-config:
+  data-mongo-data:
+
+networks:
+  osdr-net-ext:
+    external:
+      name: osdr-sys-net
