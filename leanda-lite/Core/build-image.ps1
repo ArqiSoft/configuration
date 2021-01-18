@@ -1,0 +1,1 @@
+docker build -t leanda/core-lite:latest .

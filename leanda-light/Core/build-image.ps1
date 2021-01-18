@@ -1,1 +1,0 @@
-docker build -t leanda/core-light:latest .
