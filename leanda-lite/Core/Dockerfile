@@ -10,7 +10,7 @@ ENV OSDR_MONGO_DB=$CI_MONGO_DB
 
 WORKDIR /build
 
-RUN git clone --branch leanda-lite --depth 1 https://github.com/ArqiSoft/leanda-core ./  
+RUN git clone --depth 1 https://github.com/ArqiSoft/leanda-core ./  
 
 
 RUN dotnet restore --configfile Nuget.config Sds.Osdr.Domain.BackEnd/Sds.Osdr.Domain.BackEnd.csproj
