@@ -10,7 +10,8 @@ ENV OSDR_MONGO_DB=$CI_MONGO_DB
 
 WORKDIR /build
 
-RUN git clone --branch leanda-lite https://github.com/ArqiSoft/leanda-core ./ 
+RUN git clone --branch leanda-lite --depth 1 https://github.com/ArqiSoft/leanda-core ./  
+
 
 RUN dotnet restore --configfile Nuget.config Sds.Osdr.Domain.BackEnd/Sds.Osdr.Domain.BackEnd.csproj
 RUN dotnet restore --configfile Nuget.config Sds.Osdr.Domain.FrontEnd/Sds.Osdr.Domain.FrontEnd.csproj
@@ -37,12 +38,11 @@ RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for
 RUN apt-get update && apt-get install -y procps
 
 COPY --from=build-env /dist ./
-
-COPY appsettings.BackEnd.json ./appsettings.BackEnd.json
-COPY appsettings.FrontEnd.json ./appsettings.FrontEnd.json
-COPY appsettings.Persistence.json ./appsettings.Persistence.json
-COPY appsettings.SagaHost.json ./appsettings.SagaHost.json
-COPY appsettings.WebApi.json ./appsettings.WebApi.json
+COPY --from=build-env /dist/Sds.Osdr.Domain.BackEnd/appsettings.BackEnd.json ./appsettings.BackEnd.json
+COPY --from=build-env /dist/Sds.Osdr.Domain.FrontEnd/appsettings.FrontEnd.json ./appsettings.FrontEnd.json
+COPY --from=build-env /dist/Sds.Osdr.Persistence/appsettings.Persistence.json ./appsettings.Persistence.json
+COPY --from=build-env /dist/Sds.Osdr.Domain.SagaHost/appsettings.SagaHost.json ./appsettings.SagaHost.json
+COPY --from=build-env /dist/Sds.Osdr.WebApi/appsettings.WebApi.json ./appsettings.WebApi.json
 
 ENV ASPNETCORE_URLS http://+:18006
 EXPOSE 18006
