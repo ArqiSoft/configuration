@@ -1,0 +1,188 @@
+version: "3"
+
+services:
+    eventstore:
+        image: eventstore/eventstore:release-4.0.2
+        container_name: eventstore
+        ports:
+            - "2113:2113"
+            - "1113:1113"
+        environment:
+            - RUN_PROJECTIONS=All
+        volumes:
+            - data-eventstore:/var/lib/eventstore
+        networks:
+            - leanda-ext
+
+    redis:
+        image: redis:4-alpine
+        container_name: redis
+        command: redis-server --appendonly yes
+        ports:
+            - "6379:6379"
+        volumes:
+            - data-redis:/data
+        networks:
+            - leanda-ext
+
+    rabbitmq:
+        image: leanda/rabbitmq
+        container_name: rabbitmq
+        hostname: "rabbitmq-dev"
+        environment:
+            - RABBITMQ_DEFAULT_VHOST=osdr_dev
+        ports:
+            - "8282:15672"
+            - "5671:5671"
+            - "5672:5672"
+        volumes:
+            - data-rabbitmq:/var/lib/rabbitmq
+        networks:
+            - leanda-ext
+
+    mongo:
+        image: mongo:3.6
+        container_name: mongo
+        ports:
+            - "27017:27017"
+        volumes:
+            - data-mongo-config:/data/configdb
+            - data-mongo-data:/data/db
+        networks:
+            - leanda-ext
+
+    elasticsearch:
+        image: leanda/elasticsearch
+        container_name: elasticsearch
+        environment:
+            - discovery.type=single-node
+        #- "ES_JAVA_OPTS=-Xms8g -Xmx8g"
+        volumes:
+            - data-elasticsearch:/usr/share/elasticsearch/data
+        ports:
+            - "9201:9201"
+            - "9200:9200"
+            - "9301:9300"
+        networks:
+            - leanda-ext
+
+    nginx-leanda-lite:
+        image: leanda/nginx
+        container_name: nginx-leanda-lite
+        build:
+            context: ./nginx
+        ports:
+            - "80:80"
+        networks:
+            - leanda-ext
+        depends_on:
+            - blob-storage-api
+            - core-lite
+
+    blob-storage-api:
+        container_name: blob-storage-api
+        entrypoint: /bin/bash
+        image: leanda/blob-storage-webapi:${TAG_VERSION-latest}
+        environment:
+            - IDENTITY_SERVER_URL=https://id.leanda.io/auth/realms/OSDR
+            - OSDR_LOG_FOLDER=/logs
+            - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+            - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+            - MAX_BLOB_SIZE=${MAX_BLOB_SIZE}
+        command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.Storage.Blob.WebApi
+        volumes:
+            - ${OSDR_LOG_FOLDER}:/logs
+        networks:
+            - leanda-ext
+        ports:
+            - "18006:18006"
+        depends_on:
+            - rabbitmq
+            - mongo
+
+    core-lite:
+        container_name: core-lite
+        image: leanda/core-lite:${TAG_VERSION-latest}
+        entrypoint: /bin/bash
+        environment:
+            - IDENTITY_SERVER_URL=https://id.leanda.io/auth/realms/OSDR
+            - OSDR_REDIS=redis
+            - OSDR_LOG_FOLDER=/logs
+            - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+            - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+            - OSDR_EVENT_STORE=ConnectTo=tcp://admin:changeit@eventstore:1113
+            - OSDR_ES=http://elasticsearch:9200
+            - SWAGGER_BASEPATH=/core-api/v1
+            - OSDR_LOG_LEVEL=Debug
+        command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- supervisord -n
+        volumes:
+            - ${OSDR_LOG_FOLDER}:/logs
+        build:
+            context: ./Core
+        networks:
+            - leanda-ext
+        ports:
+            - "28611:18006"
+        depends_on:
+            - rabbitmq
+            - eventstore
+            - redis
+            - mongo
+
+    common-file-processor:
+        container_name: common-file-processor
+        image: common-file-processor
+        environment:
+            - TZ=EST
+            - OSDR_LOG_FOLDER=/logs
+            - OSDR_TEMP_FILES_FOLDER=/temps
+            - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+            - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        volumes:
+            - /temps/
+            - /logs/
+        build:
+            context: ./java-services
+        ports:
+            - 8987:8087
+        networks:
+            - leanda-ext
+        depends_on:
+            - rabbitmq
+            - mongo
+
+    ui:
+        container_name: ui
+        image: leanda/ui:${TAG_VERSION-latest}
+        environment:
+            - IDENTITY_SERVER_URL=https://id.leanda.io/auth/realms/OSDR
+            - CORE_API_URL=${CORE_API_URL}
+            - BLOB_STORAGE_API_URL=${BLOB_STORAGE_API_URL}
+            - IMAGING_URL=${IMAGING_URL}
+            - SIGNALR_URL=${SIGNALR_URL}
+            - METADATA_URL=${METADATA_URL}
+            - PROXY_JSMOL_URL=${PROXY_JSMOL_URL}
+            - KETCHER_URL=${KETCHER_URL}
+            - REALM=${REALM}
+        # command: usr/share/wait-for.sh -t 30 blob-storage-api:18006 core-web-api:18006 -- usr/share/setenv.sh && sleep 3 && nginx -g 'daemon off;'
+        networks:
+            - leanda-ext
+        ports:
+            - "5555:80"
+        depends_on:
+            - blob-storage-api
+
+volumes:
+    data-eventstore:
+    data-redis:
+    data-rabbitmq:
+    data-elasticsearch:
+    data-mongo-config:
+    data-mongo-data:
+    data-pstgresql:
+    data-keycloak:
+
+networks:
+    leanda-ext:
+        external:
+            name: leanda-net
