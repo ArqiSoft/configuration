@@ -3,6 +3,10 @@
 ## Run locally
 
 ```terminal
+docker network create leanda-net
+```
+
+```terminal
 docker-compose up
 ```
 

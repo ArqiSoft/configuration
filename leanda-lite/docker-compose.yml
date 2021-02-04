@@ -67,7 +67,7 @@ services:
             - leanda-ext
 
     nginx-leanda-lite:
-        image: leanda/nginx
+        image: leanda/nginx-lite
         container_name: nginx-leanda-lite
         build:
             context: ./nginx
@@ -131,7 +131,7 @@ services:
 
     common-file-processor:
         container_name: common-file-processor
-        image: common-file-processor
+        image: leanda/common-file-processor
         environment:
             - TZ=EST
             - OSDR_LOG_FOLDER=/logs
@@ -139,8 +139,8 @@ services:
             - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
             - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
         volumes:
-            - /temps/
-            - /logs/
+        - ${OSDR_LOG_FOLDER}:/logs
+        - ${OSDR_TEMP_FILES_FOLDER}:/temp
         build:
             context: ./java-services
         ports:
