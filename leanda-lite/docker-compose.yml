@@ -69,8 +69,6 @@ services:
     nginx-leanda-lite:
         image: leanda/nginx-lite
         container_name: nginx-leanda-lite
-        build:
-            context: ./nginx
         ports:
             - "80:80"
         networks:
@@ -117,8 +115,6 @@ services:
         command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh elasticsearch:9200 -t 60 -- supervisord -n
         volumes:
             - ${OSDR_LOG_FOLDER}:/logs
-        build:
-            context: ./Core
         networks:
             - leanda-ext
         ports:
@@ -141,8 +137,6 @@ services:
         volumes:
         - ${OSDR_LOG_FOLDER}:/logs
         - ${OSDR_TEMP_FILES_FOLDER}:/temp
-        build:
-            context: ./java-services
         ports:
             - 8987:8087
         networks:
