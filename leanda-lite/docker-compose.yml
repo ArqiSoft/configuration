@@ -66,9 +66,9 @@ services:
         networks:
             - leanda-ext
 
-    nginx-leanda-lite:
+    nginx-lite:
         image: leanda/nginx-lite
-        container_name: nginx-leanda-lite
+        container_name: nginx-lite
         ports:
             - "80:80"
         networks:
