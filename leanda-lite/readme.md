@@ -1,4 +1,4 @@
-# Leanda lite Configuration
+# Leanda Lite Configuration
 
 ## Run locally
 
