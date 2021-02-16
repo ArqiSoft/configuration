@@ -10,6 +10,10 @@ RUN mvn -B -Pdocker package
 
 FROM openjdk:8-jre
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl
+RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh > /app/wait-for-it.sh && chmod 777 /app/wait-for-it.sh
+
 COPY --from=builder /usr/src/imaging-service/target/sds-imaging-service.jar ./
 COPY --from=builder /usr/src/office-file-processor-service/target/office-file-processor.jar ./
 
