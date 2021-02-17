@@ -100,7 +100,7 @@ services:
 
     core-lite:
         container_name: core-lite
-        image: leanda/core-lite:${TAG_VERSION-latest}
+        image: leanda/core-lite:lite-only
         entrypoint: /bin/bash
         environment:
             - IDENTITY_SERVER_URL=https://id.leanda.io/auth/realms/OSDR
