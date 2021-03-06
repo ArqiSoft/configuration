@@ -98,6 +98,71 @@ services:
             - rabbitmq
             - mongo
 
+    chemical-file-parser:
+        container_name: chemical-file-parser
+        image: leanda/chemical-file-parser:${TAG_VERSION-latest}
+        entrypoint: /bin/bash
+        environment:
+        - TZ=EST
+        - OSDR_LOG_FOLDER=/logs
+        - OSDR_TEMP_FILES_FOLDER=/temp
+        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - QUEUE_PREFETCH_SIZE=9
+        - EXECUTOR_THREAD_COUNT=3
+        command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar chemical-parser.jar
+        volumes:
+        - ${OSDR_LOG_FOLDER}:/logs
+        - ${OSDR_TEMP_FILES_FOLDER}:/temp
+        networks:
+        - leanda-ext
+        depends_on:
+        - rabbitmq
+        - mongo
+
+    chemical-properties:
+        container_name: chemical-properties
+        image: leanda/chemical-properties:${TAG_VERSION-latest}
+        entrypoint: /bin/bash
+        environment:
+        - TZ=EST
+        - OSDR_LOG_FOLDER=/logs
+        - OSDR_TEMP_FILES_FOLDER=/temp
+        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - QUEUE_PREFETCH_SIZE=9
+        - EXECUTOR_THREAD_COUNT=3
+        command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./wait-for-it.sh mongo:27017 -t 60 -- java -jar sds-chemical-properties-service.jar
+        volumes:
+        - ${OSDR_LOG_FOLDER}:/logs
+        - ${OSDR_TEMP_FILES_FOLDER}:/temp
+        ports:
+        - 8986:8086
+        networks:
+        - leanda-ext
+        depends_on:
+        - rabbitmq
+        - mongo
+
+    metadata-processing:
+        container_name: metadata-processing
+        image: leanda/metadata-processing:${TAG_VERSION-latest}
+        entrypoint: /bin/bash
+        environment:
+        - OSDR_LOG_FOLDER=/logs
+        - OSDR_MONGO_DB=mongodb://mongo:27017/osdr_dev
+        - OSDR_RABBIT_MQ=rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
+        command: ./wait-for-it.sh rabbitmq:5672 -t 60 -- ./Sds.MetadataStorage.Processing
+        volumes:
+        - ${OSDR_LOG_FOLDER}:/logs
+        networks:
+        - leanda-ext
+        ports:
+        - "11050:11050"
+        depends_on:
+        - rabbitmq
+        - mongo
+
     core-lite:
         container_name: core-lite
         image: leanda/core-lite:lite-only
