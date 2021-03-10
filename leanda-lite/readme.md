@@ -14,7 +14,7 @@ docker-compose up
 
 Environment Variable            | Value
 ------------------------------- | -------------
-IDENTITY_SERVER_URL             | https://id.leanda.io/auth/realms/OSDR
+IDENTITY_SERVER_URL             | https://id.leanda.io/auth/realms/Leanda
 OSDR_LOG_FOLDER                 | /logs
 OSDR_MONGO_DB                   | mongodb://mongo:27017/osdr_dev
 OSDR_RABBIT_MQ                  | rabbitmq://guest:guest@rabbitmq:5672/osdr_dev
@@ -32,4 +32,4 @@ SIGNALR_URL                     | http://localhost/core-api/v1/signalr
 METADATA_URL                    | http://localhost:63790/api
 PROXY_JSMOL_URL                 | http://localhost/core-api/v1/api/proxy/jsmol
 KETCHER_URL                     | https://leanda.io/ketcher/indigo/layout
-REALM                           | OSDR
+REALM                           | Leanda
