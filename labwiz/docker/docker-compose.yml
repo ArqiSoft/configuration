@@ -389,5 +389,5 @@ volumes:
 
 networks:
     leanda-ext:
-        external:
-            name: leanda-net
+        name: leanda-ext
+        external: true

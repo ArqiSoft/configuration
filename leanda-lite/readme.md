@@ -3,7 +3,7 @@
 ## Run locally
 
 ```terminal
-docker network create leanda-net
+docker network create leanda-ext
 ```
 
 ```terminal
